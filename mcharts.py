@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 # This allows the generation even without X server running
@@ -29,10 +30,18 @@ import argparse
 parser = argparse.ArgumentParser(description='Generate charts out of\
  MeisterTask exported CSVs', version='0.1')
 
+parser.add_argument('-p', '--person', nargs=1, help='Data about a specific person')
+
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-w', '--workload', action='store_true', help='Chart of workload')
 group.add_argument('-t', '--tasks',  action='store_true', help='Chart of number of tasks')
+
+group2 = parser.add_mutually_exclusive_group()
+group2.add_argument('-th', '--hours',  action='store_true', help='Show time in hours')
+group2.add_argument('-tm', '--minutes',  action='store_true', help='Show time in minutes')
+group2.add_argument('-ts', '--seconds',  action='store_true', help='Show time in seconds')
 parser.add_argument('filename', help='CSV filename')
+
 args = vars(parser.parse_args())
 
 if args['workload']:
@@ -109,3 +118,17 @@ elif args['tasks']:
     plt.bar(x, y, width, color="blue")
 
     fig.savefig('tasks_chart.png')
+elif args['person']:
+    time = 0
+    with open(args['filename'], 'rb') as csvfile:
+      content = csv.DictReader(csvfile)
+      for row in content:
+          name = row['First name'] + str(' ') + row['Last name']
+          if args['person'][0] in name:
+            time += float(row['Hours'])
+    if args['minutes']:
+        print time*60
+    elif args['hours']:
+        print time
+    elif args['seconds']:
+        print time*60*60
